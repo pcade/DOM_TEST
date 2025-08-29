@@ -47,7 +47,7 @@ jobs:
         with:
           name: ansible-logs
           path: ansible-ssh-audit.log
-  
+
   log_check:
     name: Check Logs
     runs-on: ubuntu-latest
@@ -66,3 +66,4 @@ jobs:
             exit 1
           fi
           jq empty ./ansible-ssh-audit.log
+          echo "Log file is fine!"
