@@ -1,0 +1,1 @@
+{"timestamp": "2025-08-29T10:56:46Z", "host": "060656af03ab", "ansible_version": "2.18.8", "ansible_user": "root", "message": {"PermitRootLogin": "no", "PasswordAuthentication": "no", "MaxAuthTries": "no", "ChallengeResponseAuthentication": "no", "X11Forwarding": "yes", "status": "compliant"}}

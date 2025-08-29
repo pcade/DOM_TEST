@@ -33,10 +33,10 @@ jobs:
           docker build -t ansible-role-test:latest -f docker/Dockerfile .
       - name: Run Docker container
         run: |
-          docker run -d --name ansible-container ansible-role-test:latest tail -f /dev/null
+          docker run -d --name ssh-audit-role ansible-role-test:latest tail -f /dev/null
       - name: Check ansible-ssh-audit.log
         run: |
-          docker cp ansible-container:/var/log/ansible-ssh-audit.log ./ansible-ssh-audit.log
+          docker cp ssh-audit-role:/var/log/ansible-ssh-audit.log ./ansible-ssh-audit.log
           if [ ! -f ./ansible-ssh-audit.log ]; then
             echo "Log file not found!"
             exit 1
@@ -44,5 +44,5 @@ jobs:
           jq empty ./ansible-ssh-audit.log
       - name: Clean up
         run: |
-          docker stop ansible-container
-          docker rm ansible-container
+          docker stop ssh-audit-role
+          docker rm ssh-audit-role
