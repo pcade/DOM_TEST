@@ -29,8 +29,11 @@
   ansible.builtin.set_fact:
     ssh_audit_result: >-
       {{
-        ssh_audit_result | combine({
-            'message': ssh_audit_result.message | combine({param_name: param_result.stdout})
+        ssh_audit_result | combine(
+          {
+            'message': ssh_audit_result.message | combine(
+              {param_name: param_result.stdout}
+            )
           },
           recursive=true
         )
