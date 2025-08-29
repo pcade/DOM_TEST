@@ -51,6 +51,5 @@ chmod +x entrypoint.sh
 # Запуск парсера
 python scripts/parse_ssh_config.py  <path_to_sshd_config> <path_to_standards.json>
 ```
-
 ### Тестирование `Ansible` и `Dockerfile` происходит в пайплайне `CI`
 >> настроенно на пуш
