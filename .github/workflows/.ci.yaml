@@ -47,10 +47,13 @@ jobs:
         run: sudo apt update && sudo apt install -y jq
       - name: Verify container exists
         run: |
-          docker ps -a --filter "name=ansible-container" --format "{{.Names}}" | grep -w ansible-container || {
+          echo "Checking for existing containers..."
+          docker ps -a
+          sleep 5  # Wait for a few seconds before checking
+          if ! docker ps -a --filter "name=ansible-container" --format "{{.Names}}" | grep -w ansible-container; then
             echo "Container ansible-container does not exist!";
             exit 1;
-          }
+          fi
       - name: Check ansible-ssh-audit.log
         run: |
           docker cp ansible-container:/var/log/ansible-ssh-audit.log ./ansible-ssh-audit.log
