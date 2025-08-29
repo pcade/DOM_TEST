@@ -1,0 +1,8 @@
+---
+# vars file for ssh_audit
+ssh_audit_compliance_standards:
+  PermitRootLogin: "no"
+  PasswordAuthentication: "no"
+  MaxAuthTries: "no"
+  ChallengeResponseAuthentication: "no"
+  X11Forwarding: "yes"

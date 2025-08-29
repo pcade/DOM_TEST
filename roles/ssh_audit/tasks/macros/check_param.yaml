@@ -1,0 +1,37 @@
+---
+- name: "Get value of {{ param_name }}"
+  ansible.builtin.shell: |
+    set -o pipefail
+    if grep -q "^{{ param_name }}" "{{ ssh_audit_sshd_config_path }}"; then
+      grep "^{{ param_name }}" "{{ ssh_audit_sshd_config_path }}" | awk '{print $2}'
+    else
+      echo "no"
+    fi
+  args:
+    executable: /bin/bash
+  changed_when: false
+  register: param_result
+
+- name: "Initialize result dictionary if not exists"
+  ansible.builtin.set_fact:
+    result: >-
+      {{
+        result | default({
+          'message': 'non-compliant',
+          'timestamp': ssh_audit_result.timestamp,
+          'host': ssh_audit_result.host,
+          'ansible_version': ssh_audit_result.ansible_version,
+          'ansible_user': ssh_audit_result.ansible_user
+        })
+      }}
+
+- name: "Add parameter result to message dictionary"
+  ansible.builtin.set_fact:
+    result: >-
+      {{
+        result | combine({
+            'message': result.message | combine({param_name: param_result.stdout})
+          },
+          recursive=true
+        )
+      }}

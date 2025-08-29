@@ -1,0 +1,71 @@
+---
+- name: "Initialize result dictionary with message structure"
+  ansible.builtin.set_fact:
+    result: "{{ ssh_audit_result | combine({'message': {}}, recursive=True) }}"
+
+- name: "Check if sshd_config file exists"
+  ansible.builtin.stat:
+    path: "{{ ssh_audit_sshd_config_path }}"
+  register: sshd_config_stat
+
+- name: "Fail sshd_config file does not exist"
+  ansible.builtin.fail:
+    msg: "sshd_config file not found at {{ ssh_audit_sshd_config_path }}"
+  when: not sshd_config_stat.stat.exists
+
+- name: "Check each SSH parameter"
+  ansible.builtin.include_tasks: tasks/macros/check_param.yaml
+  loop: "{{ ssh_audit_ssh_parameters }}"
+  loop_control:
+    loop_var: param_name
+
+- name: "Save final result as single line JSON"
+  ansible.builtin.set_fact:
+    final_result: "{{ result | to_json }}"
+
+- name: "Check compliance for all parameters"
+  ansible.builtin.set_fact:
+    is_compliant: >-
+      {{
+        is_compliant | default(true) and
+        (result.message[item] == ssh_audit_compliance_standards[item])
+      }}
+  loop: "{{ ssh_audit_compliance_standards.keys() | list }}"
+  when: item in result.message
+
+- name: "Set compliance status"
+  ansible.builtin.set_fact:
+    result: >-
+      {{
+        result | combine(
+          {
+            'message': result.message | combine(
+              {
+                'status': 'compliant' if is_compliant | default(false) else 'non-compliant'
+              }
+            )
+          },
+          recursive=true
+        )
+      }}
+
+- name: "Save final result as single line JSON"
+  ansible.builtin.set_fact:
+    final_result: "{{ result | to_json }}"
+
+- name: "Save final result as single line JSON"
+  ansible.builtin.debug:
+    msg: "{{ final_result }}"
+
+- name: "Write result to log file"
+  ansible.builtin.lineinfile:
+    path: "{{ ssh_audit_log_path }}"
+    line: "{{ final_result }}"
+    create: true
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: "Display final result"
+  ansible.builtin.debug:
+    msg: "Status: {{ result.message.status }}"

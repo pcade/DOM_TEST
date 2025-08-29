@@ -1,0 +1,7 @@
+---
+- name: Check SSH parameters
+  hosts: all
+  gather_facts: true
+  become: true
+  roles:
+    - ssh_audit

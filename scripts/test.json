@@ -1,0 +1,7 @@
+    {
+      "PermitRootLogin": "no",
+      "PasswordAuthentication": "no",
+      "MaxAuthTries": "no",
+      "ChallengeResponseAuthentication": "no",
+      "X11Forwarding": "yes"
+    }
