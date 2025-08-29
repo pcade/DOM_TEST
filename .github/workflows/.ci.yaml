@@ -7,21 +7,52 @@ on:
   pull_request:
 
 jobs:
+  lint:
+    name: Lint Ansible Roles
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          pip install ansible ansible-lint yamllint
+      - name: Run yamllint
+        run: yamllint roles/
+      - name: Run ansible-lint
+        run: ansible-lint roles/
+
   build:
     name: Build Docker Image
     runs-on: ubuntu-latest
+    needs: lint
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - name: Build Docker image
-        run: |
-          docker build -t ansible-role-test:latest -f docker/Dockerfile .
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Build Docker image
+      run: |
+        docker build -t ansible-role-test:latest -f docker/Dockerfile .
+    - name: Run Docker container
+      run: |
+        docker run --rm ansible-role-test:latest || { echo "Container failed to run"; exit 1; }
 
-  run:
-    name: Run Docker Container
+  log_check:
+    name: Check Logs
     runs-on: ubuntu-latest
-    needs: build  # Зависимость от job'а сборки
+    needs: build
     steps:
-      - name: Run Docker container
+      - name: Install jq
+        run: sudo apt update && sudo apt install -y jq
+      - name: Check ansible-ssh-audit.log
         run: |
-          docker run --rm ansible-role-test:latest || { echo "Container failed to run"; exit 1; }
+          docker cp ansible-container:/var/log/ansible-ssh-audit.log ./ansible-ssh-audit.log
+          if [ ! -f ./ansible-ssh-audit.log ]; then
+            echo "Log file not found!"
+            exit 1
+          fi
+          jq empty ./ansible-ssh-audit.log
+      - name: Clean up
+        run: |
+          docker stop ansible-container
