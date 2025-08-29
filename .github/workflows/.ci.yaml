@@ -7,26 +7,37 @@ on:
   pull_request:
 
 jobs:
-  build:
-    name: Build Docker Image
+  lint:
+    name: Lint Ansible Roles
     runs-on: ubuntu-latest
-    needs: lint
     steps:
       - uses: actions/checkout@v3
-      - name: Build Docker Image
-        run: docker build -t ansible-role-test:latest -f docker/Dockerfile .
-      - name: List Docker Images
-        run: docker images
-
-  test:
-    name: Run Role in Container
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - uses: actions/checkout@v3
-      - name: Run Container
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
         run: |
-          docker run --rm ansible-role-test:latest || { echo "Container failed to run"; exit 1; }
+          pip install ansible ansible-lint yamllint
+      - name: Run yamllint
+        run: yamllint roles/
+      - name: Run ansible-lint
+        run: ansible-lint roles/
+
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Build Docker image
+      run: |
+        docker build -t ansible-role-test:latest .
+
+    - name: Run Docker container
+      run: |
+        docker run --rm ansible-role-test:latest || { echo "Container failed to run"; exit 1; }
 
 
   log_check:
@@ -44,21 +55,3 @@ jobs:
             exit 1
           fi
           jq empty /ansible/log.json
-
-
-  lint:
-    name: Lint Ansible Roles
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-      - name: Install dependencies
-        run: |
-          pip install ansible ansible-lint yamllint
-      - name: Run yamllint
-        run: yamllint roles/
-      - name: Run ansible-lint
-        run: ansible-lint roles/
