@@ -2,8 +2,8 @@
 - name: "Get value of {{ param_name }}"
   ansible.builtin.shell: |
     set -o pipefail
-    if grep -q "^{{ param_name }}" "{{ ssh_audit_sshd_config_path }}"; then
-      grep "^{{ param_name }}" "{{ ssh_audit_sshd_config_path }}" | awk '{print $2}'
+    if grep -q "^{{ param_name }}" "{{ ssh_audit_config_path }}"; then
+      grep "^{{ param_name }}" "{{ ssh_audit_config_path }}" | awk '{print $2}'
     else
       echo "no"
     fi

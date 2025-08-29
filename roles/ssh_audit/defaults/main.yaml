@@ -1,6 +1,6 @@
 ---
 # defaults file for ssh_audit
-ssh_audit_sshd_config_path: "/etc/ssh/sshd_config"
+ssh_audit_config_path: "/etc/ssh/sshd_config"
 ssh_audit_log_path: "/var/log/ansible-ssh-audit.log"
 
 ssh_audit_result:
