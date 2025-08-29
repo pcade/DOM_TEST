@@ -38,28 +38,28 @@ jobs:
       run: |
         docker run --rm ansible-role-test:latest || { echo "Container failed to run"; exit 1; }
 
-log_check:
-  name: Check Logs
-  runs-on: ubuntu-latest
-  needs: build
-  steps:
-    - name: Install jq
-      run: sudo apt update && sudo apt install -y jq
-    - name: Verify container exists
-      run: |
-        docker ps -a --filter "name=ansible-container" --format "{{.Names}}" | grep -w ansible-container || {
-          echo "Container ansible-container does not exist!";
-          exit 1;
-        }
-    - name: Check ansible-ssh-audit.log
-      run: |
-        docker cp ansible-container:/var/log/ansible-ssh-audit.log ./ansible-ssh-audit.log
-        if [ ! -f ./ansible-ssh-audit.log ]; then
-          echo "Log file not found!"
-          exit 1
-        fi
-        jq empty ./ansible-ssh-audit.log
-    - name: Clean up
-      run: |
-        docker stop ansible-container
-        docker rm ansible-container
+  log_check:
+    name: Check Logs
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Install jq
+        run: sudo apt update && sudo apt install -y jq
+      - name: Verify container exists
+        run: |
+          docker ps -a --filter "name=ansible-container" --format "{{.Names}}" | grep -w ansible-container || {
+            echo "Container ansible-container does not exist!";
+            exit 1;
+          }
+      - name: Check ansible-ssh-audit.log
+        run: |
+          docker cp ansible-container:/var/log/ansible-ssh-audit.log ./ansible-ssh-audit.log
+          if [ ! -f ./ansible-ssh-audit.log ]; then
+            echo "Log file not found!"
+            exit 1
+          fi
+          jq empty ./ansible-ssh-audit.log
+      - name: Clean up
+        run: |
+          docker stop ansible-container
+          docker rm ansible-container
