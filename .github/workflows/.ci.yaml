@@ -23,33 +23,46 @@ jobs:
           name: docker-image
           path: image.tar
 
-  test:
-    name: Test Ansible Role
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Download image artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: docker-image
-      - name: Load Docker image
-        run: docker load -i image.tar
-      - name: Run role in container
-        run: |
-          docker run -d --name ansible-container ansible-role-test tail -f /dev/null
+test:
+  name: Test Ansible Role
+  runs-on: ubuntu-latest
+  needs: build
+  steps:
+    - name: Download image artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: docker-image
+    - name: Load Docker image
+      run: docker load -i image.tar
+    - name: Run role in container
+      run: |
+        docker run -d --name ansible-container ansible-role-test tail -f /dev/null
+        # Ждем завершения выполнения роли (если нужно)
+        sleep 10
+    - name: Copy logs from container
+      run: |
+        docker cp ansible-container:/var/log/ansible-ssh-audit.log ./ansible-ssh-audit.log
+    - name: Upload logs as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ansible-logs
+        path: ansible-ssh-audit.log
 
-  log_check:
-    name: Check Logs
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - name: Install jq
-        run: sudo apt update && sudo apt install -y jq
-      - name: Check ansible-ssh-audit.log
-        run: |
-          docker cp ssh-audit-role:/var/log/ansible-ssh-audit.log ./ansible-ssh-audit.log
-          if [ ! -f ./ansible-ssh-audit.log ]; then
-            echo "Log file not found!"
-            exit 1
-          fi
-          jq empty ./ansible-ssh-audit.log
+log_check:
+  name: Check Logs
+  runs-on: ubuntu-latest
+  needs: test
+  steps:
+    - name: Download logs artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: ansible-logs
+    - name: Install jq
+      run: sudo apt update && sudo apt install -y jq
+    - name: Check ansible-ssh-audit.log
+      run: |
+        if [ ! -f ./ansible-ssh-audit.log ]; then
+          echo "Log file not found!"
+          exit 1
+        fi
+        jq empty ./ansible-ssh-audit.log
