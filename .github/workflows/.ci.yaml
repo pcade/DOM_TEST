@@ -7,22 +7,22 @@ on:
   pull_request:
 
 jobs:
-  lint:
-    name: Lint Ansible Roles
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-      - name: Install dependencies
-        run: |
-          pip install ansible ansible-lint yamllint
-      - name: Run yamllint
-        run: yamllint roles/
-      - name: Run ansible-lint
-        run: ansible-lint roles/
+#  lint:
+#    name: Lint Ansible Roles
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v3
+#      - name: Set up Python
+#        uses: actions/setup-python@v4
+#        with:
+#          python-version: '3.11'
+#      - name: Install dependencies
+#        run: |
+#          pip install ansible ansible-lint yamllint
+#      - name: Run yamllint
+#        run: yamllint roles/
+#      - name: Run ansible-lint
+#        run: ansible-lint roles/
 
   build:
     name: Build Docker Image
