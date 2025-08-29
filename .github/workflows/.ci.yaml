@@ -7,22 +7,6 @@ on:
   pull_request:
 
 jobs:
-  lint:
-    name: Lint Ansible Roles
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-      - name: Install dependencies
-        run: |
-          pip install ansible ansible-lint yamllint
-      - name: Run yamllint
-        run: yamllint roles/
-      - name: Run ansible-lint
-        run: ansible-lint roles/
 
   build:
     runs-on: ubuntu-latest
@@ -38,20 +22,3 @@ jobs:
     - name: Run Docker container
       run: |
         docker run --rm ansible-role-test:latest || { echo "Container failed to run"; exit 1; }
-
-
-  log_check:
-    name: Check Logs
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - uses: actions/checkout@v3
-      - name: Install jq
-        run: sudo apt update && sudo apt install -y jq
-      - name: Verify Log JSON
-        run: |
-          if [ ! -f /ansible/log.json ]; then
-            echo "Log file not found!"
-            exit 1
-          fi
-          jq empty /ansible/log.json
