@@ -1,17 +1,17 @@
 ---
-- name: "Initialize result dictionary with message structure"
+- name: "Initialize ssh_audit_result dictionary with message structure"
   ansible.builtin.set_fact:
-    result: "{{ ssh_audit_result | combine({'message': {}}, recursive=True) }}"
+    ssh_audit_result: "{{ ssh_audit_result | combine({'message': {}}, recursive=True) }}"
 
 - name: "Check if sshd_config file exists"
   ansible.builtin.stat:
     path: "{{ ssh_audit_sshd_config_path }}"
-  register: sshd_config_stat
+  register: ssh_audit_sshd_config_stat
 
 - name: "Fail sshd_config file does not exist"
   ansible.builtin.fail:
     msg: "sshd_config file not found at {{ ssh_audit_sshd_config_path }}"
-  when: not sshd_config_stat.stat.exists
+  when: not ssh_audit_sshd_config_stat.stat.exists
 
 - name: "Check each SSH parameter"
   ansible.builtin.include_tasks: tasks/macros/check_param.yaml
@@ -21,27 +21,27 @@
 
 - name: "Save final result as single line JSON"
   ansible.builtin.set_fact:
-    final_result: "{{ result | to_json }}"
+    ssh_audit_final_result: "{{ ssh_audit_result | to_json }}"
 
 - name: "Check compliance for all parameters"
   ansible.builtin.set_fact:
-    is_compliant: >-
+    ssh_audit_is_compliant: >-
       {{
-        is_compliant | default(true) and
-        (result.message[item] == ssh_audit_compliance_standards[item])
+        ssh_audit_is_compliant | default(true) and
+        (ssh_audit_result.message[item] == ssh_audit_compliance_standards[item])
       }}
   loop: "{{ ssh_audit_compliance_standards.keys() | list }}"
-  when: item in result.message
+  when: item in ssh_audit_result.message
 
 - name: "Set compliance status"
   ansible.builtin.set_fact:
-    result: >-
+    ssh_audit_result: >-
       {{
-        result | combine(
+        ssh_audit_result | combine(
           {
-            'message': result.message | combine(
+            'message': ssh_audit_result.message | combine(
               {
-                'status': 'compliant' if is_compliant | default(false) else 'non-compliant'
+                'status': 'compliant' if ssh_audit_is_compliant | default(false) else 'non-compliant'
               }
             )
           },
@@ -51,16 +51,16 @@
 
 - name: "Save final result as single line JSON"
   ansible.builtin.set_fact:
-    final_result: "{{ result | to_json }}"
+    ssh_audit_final_result: "{{ ssh_audit_result | to_json }}"
 
 - name: "Save final result as single line JSON"
   ansible.builtin.debug:
-    msg: "{{ final_result }}"
+    msg: "{{ ssh_audit_final_result }}"
 
 - name: "Write result to log file"
   ansible.builtin.lineinfile:
     path: "{{ ssh_audit_log_path }}"
-    line: "{{ final_result }}"
+    line: "{{ ssh_audit_final_result }}"
     create: true
     owner: root
     group: root
@@ -68,4 +68,4 @@
 
 - name: "Display final result"
   ansible.builtin.debug:
-    msg: "Status: {{ result.message.status }}"
+    msg: "Status: {{ ssh_audit_result.message.status }}"

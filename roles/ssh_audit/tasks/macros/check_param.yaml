@@ -14,9 +14,9 @@
 
 - name: "Initialize result dictionary if not exists"
   ansible.builtin.set_fact:
-    result: >-
+    ssh_audit_result: >-
       {{
-        result | default({
+        ssh_audit_result | default({
           'message': 'non-compliant',
           'timestamp': ssh_audit_result.timestamp,
           'host': ssh_audit_result.host,
@@ -27,10 +27,10 @@
 
 - name: "Add parameter result to message dictionary"
   ansible.builtin.set_fact:
-    result: >-
+    ssh_audit_result: >-
       {{
-        result | combine({
-            'message': result.message | combine({param_name: param_result.stdout})
+        ssh_audit_result | combine({
+            'message': ssh_audit_result.message | combine({param_name: param_result.stdout})
           },
           recursive=true
         )
