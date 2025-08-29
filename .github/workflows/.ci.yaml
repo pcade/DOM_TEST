@@ -34,6 +34,8 @@ jobs:
       - name: Run Docker container
         run: |
           docker run -d --name ssh-audit-role ansible-role-test:latest tail -f /dev/null
+      - name: Wait for log file to be created
+        run: sleep 10  # Wait for 10 seconds
       - name: Check ansible-ssh-audit.log
         run: |
           docker cp ssh-audit-role:/var/log/ansible-ssh-audit.log ./ansible-ssh-audit.log
